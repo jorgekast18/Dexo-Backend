@@ -1,4 +1,4 @@
-# Dexo App 📲
+# Dexo
 
 Dexo es una aplicación de finanzas personales diseñada para acompañar a los usuarios en el manejo inteligente de su dinero. Su objetivo principal es facilitar la toma de decisiones financieras mediante el uso de inteligencia artificial, que analiza los hábitos de gasto y ahorro para ofrecer recomendaciones personalizadas.
 
