@@ -15,10 +15,14 @@ Mientras otras apps ofrecen funciones limitadas de inversión o recomendaciones 
 - **Backend:** NestJS, una plataforma sólida y escalable para construir APIs eficientes y seguras.
 - **Mobile:** Flutter, para ofrecer una experiencia móvil fluida, rápida y multiplataforma.
 
----
+## Licencia
 
+Este proyecto usa la licencia MIT, una licencia permisiva que permite uso libre, modificación y distribución con mínima restricción, facilitando la colaboración y adopción del código. Más información sobre la licencia MIT puede encontrarse [aquí](https://es.wikipedia.org/wiki/Licencia_MIT).
+
+---
+````
 Dexo combina tecnología de punta y análisis inteligente para transformar la forma en que las personas gestionan y hacen crecer su dinero, ofreciendo una experiencia única en el mercado de aplicaciones de finanzas personales.
-``````markdown
+````
 # Dexo
 
 Dexo es una aplicación de finanzas personales diseñada para acompañar a los usuarios en el manejo inteligente de su dinero. Su objetivo principal es facilitar la toma de decisiones financieras mediante el uso de inteligencia artificial, que analiza los hábitos de gasto y ahorro para ofrecer recomendaciones personalizadas.
@@ -35,6 +39,10 @@ Mientras otras apps ofrecen funciones limitadas de inversión o recomendaciones 
 
 - **Backend:** NestJS, una plataforma sólida y escalable para construir APIs eficientes y seguras.
 - **Mobile:** Flutter, para ofrecer una experiencia móvil fluida, rápida y multiplataforma.
+
+## Licencia
+
+Este proyecto usa la licencia MIT, una licencia permisiva que permite uso libre, modificación y distribución con mínima restricción, facilitando la colaboración y adopción del código. Más información sobre la licencia MIT puede encontrarse [aquí](https://es.wikipedia.org/wiki/Licencia_MIT).
 
 ---
 
