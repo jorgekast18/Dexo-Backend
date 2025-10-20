@@ -15,6 +15,11 @@ Mientras otras apps ofrecen funciones limitadas de inversión o recomendaciones 
 - **Backend:** NestJS, una plataforma sólida y escalable para construir APIs eficientes y seguras.
 - **Mobile:** Flutter, para ofrecer una experiencia móvil fluida, rápida y multiplataforma.
 
+
+## Hitos
+
+- [Hito 1](src/doc/hito1.md)
+- [Hito 2](src/doc/hito2.md)
 ## Licencia
 
 Este proyecto usa la licencia MIT, una licencia permisiva que permite uso libre, modificación y distribución con mínima restricción, facilitando la colaboración y adopción del código. Más información sobre la licencia MIT puede encontrarse [aquí](https://es.wikipedia.org/wiki/Licencia_MIT).
