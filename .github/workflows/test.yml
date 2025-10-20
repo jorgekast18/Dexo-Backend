@@ -1,0 +1,26 @@
+name: Ejecutar tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check code
+        uses: actions/checkout@v3
+
+      - name: Setup node js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Exec test
+        run: npm test
