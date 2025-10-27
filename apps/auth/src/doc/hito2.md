@@ -15,4 +15,4 @@ correctamente y sea mantenible.
 Se integrado GitHub Actions para la integración continua. Dejando configurado un action "test.yml"
 que se ejecuta cada vez que se hace un commit en las ramas "main" y "develop".
 
-![GitHub Actions](../../assets/imgs/CI.png)
+![GitHub Actions](../../../../assets/imgs/CI.png)
