@@ -1,76 +1,29 @@
-# DexoAppMonorepo
+# Dexo App 🏦
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Dexo es una aplicación de finanzas personales diseñada para acompañar a los usuarios en el manejo inteligente de su dinero. Su objetivo principal es facilitar la toma de decisiones financieras mediante el uso de inteligencia artificial, que analiza los hábitos de gasto y ahorro para ofrecer recomendaciones personalizadas.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+Con Dexo, cada usuario podrá recibir opciones de inversión adaptadas a su perfil y objetivos, ayudando a aumentar su capital de manera segura y eficiente. Más que una herramienta, Dexo actúa como un asistente financiero que impulsa un futuro económico más sólido y tranquilo.
 
-Run `npx nx graph` to visually explore what got created. Now, let's get you up to speed!
+## Por qué Dexo es diferente
 
-## Finish your CI setup
+A diferencia de otras aplicaciones populares que se enfocan principalmente en el control de gastos, presupuestos y alertas, Dexo utiliza inteligencia artificial avanzada para ir un paso más allá. No solo ayuda a administrar las finanzas, sino que también acompaña al usuario en la toma de decisiones inteligentes para aumentar su capital mediante propuestas de inversión personalizadas.
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/bxcLyttQXz)
+Mientras otras apps ofrecen funciones limitadas de inversión o recomendaciones genéricas, Dexo analiza patrones únicos de cada usuario y su contexto financiero para sugerir portafolios diversificados y adaptados, facilitando una gestión activa y productiva del dinero. Esto convierte a Dexo en un asistente financiero integral que hace que la inteligencia financiera esté al alcance de todos.
 
+## Tecnologías utilizadas
 
-## Run tasks
-
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-For example:
-
-```sh
-npx nx build myproject
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
-```
-
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
-
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **Backend:** NestJS, una plataforma sólida y escalable para construir APIs eficientes y seguras.
+- **Mobile:** Flutter, para ofrecer una experiencia móvil fluida, rápida y multiplataforma.
 
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Hitos
 
-## Install Nx Console
+- [Hito 1](docs/Hito1.md)
+- [Hito 2](docs/Hito2.md)
+## Licencia
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+Este proyecto usa la licencia MIT, una licencia permisiva que permite uso libre, modificación y distribución con mínima restricción, facilitando la colaboración y adopción del código. Más información sobre la licencia MIT puede encontrarse [aquí](https://es.wikipedia.org/wiki/Licencia_MIT).
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Useful links
-
-Learn more:
-
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Dexo combina tecnología de punta y análisis inteligente para transformar la forma en que las personas gestionan y hacen crecer su dinero, ofreciendo una experiencia única en el mercado de aplicaciones de finanzas personales.
