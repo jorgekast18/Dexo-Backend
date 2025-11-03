@@ -1,26 +1,25 @@
-import { Module, Global } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { Provider } from '@nestjs/common';
 
-@Global()
-@Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DATABASE_HOST'),
-        port: +configService.get<number>('DATABASE_PORT'),
-        username: configService.get('DATABASE_USER'),
-        password: configService.get('DATABASE_PASSWORD'),
-        database: configService.get('DATABASE_NAME'),
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: true, // Usar migraciones en producción
-      }),
-    }),
-  ],
-  exports: [TypeOrmModule],  // Exportamos para que otros módulos lo usen
-})
-export class DatabaseModule {}
+export const POSTGRES_DATASOURCE = 'POSTGRES_DATASOURCE';
+
+export const PostgresDatabaseProvider: Provider = {
+  provide: POSTGRES_DATASOURCE,
+  useFactory: async (configService: ConfigService) => {
+    console.log('-->',configService.get<string>('database.host'));
+    const dataSource = new DataSource({
+      type: 'postgres',
+      host: configService.get<string>('database.host', { infer: true }),
+      port: configService.get<number>('database.port', { infer: true }),
+      username: configService.get<string>('database.username', { infer: true }),
+      password: configService.get<string>('database.password', { infer: true }),
+      database: configService.get<string>('database.name', { infer: true }),
+      entities: [],
+      synchronize: configService.get<string>('environment') !== 'production',
+
+    });
+    return dataSource.initialize();
+  },
+  inject: [ConfigService],
+};

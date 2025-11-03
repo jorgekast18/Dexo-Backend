@@ -21,6 +21,14 @@
           "buildTarget": "auth:build:production"
         }
       }
+    },
+    "docker-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/auth",
+        "command": "docker compose up -d --build",
+        "parallel": false
+      }
     }
   }
 }
