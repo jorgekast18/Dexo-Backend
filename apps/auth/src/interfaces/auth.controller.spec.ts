@@ -18,11 +18,26 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
   });
 
-  it('should signup user successfully', async () => {
-    signupMock.mockResolvedValue({ id: 'uid', name: 'John', email: 'john@mail.com' });
-    const res = await controller.signup({
-      name: 'John', email: 'john@mail.com', age: 24, gender: 'male', password: 'secret'
+  it('should sign up user successfully', async () => {
+    const mockUserResponse = { id: 'uid', name: 'John', email: 'john@mail.com' };
+    signupMock.mockResolvedValue(mockUserResponse);
+
+    const signupData = {
+      name: 'John',
+      email: 'john@mail.com',
+      age: 24,
+      gender: 'male',
+      password: 'secret',
+    };
+
+    const res = await controller.signup(signupData);
+    expect(signupMock).toHaveBeenCalledWith({
+      name: 'John',
+      email: 'john@mail.com',
+      age: 24,
+      gender: 'male',
+      password: 'secret',
     });
-    expect(res).toEqual({ id: 'uid', name: 'John', email: 'john@mail.com' });
+    expect(res).toEqual(mockUserResponse);
   });
 });
