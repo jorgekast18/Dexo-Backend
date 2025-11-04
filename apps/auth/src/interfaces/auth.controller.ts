@@ -1,6 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { SignupUseCase } from '../application/signup.use-case';
 import { SignupDto } from './signup.dto';
+import { User } from '../domain/models/user.model';
 
 @Controller('auth')
 export class AuthController {
@@ -8,7 +9,7 @@ export class AuthController {
 
   @Post('signup')
   async signup(@Body() signupDto: SignupDto) {
-    const user = await this.signupUseCase.execute(signupDto);
-    return { id: user.id, name: user.name, email: user.email };
+    const user: User = await this.signupUseCase.execute(signupDto);
+    return user;
   }
 }
