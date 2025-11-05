@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist/out-tsc",
+    "module": "commonjs",
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "jest.config.ts",
+    "logging/src/**/*.test.ts",
+    "logging/src/**/*.spec.ts",
+    "logging/src/**/*.d.ts"
+  ]
+}
