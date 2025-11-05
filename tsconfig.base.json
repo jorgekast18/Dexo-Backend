@@ -13,8 +13,10 @@
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "baseUrl": "./dexo-app-monorepo",
-    "paths": {}
+    "baseUrl": ".",
+    "paths": {
+      "@dexo-app-monorepo/logging": ["libs/logging/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

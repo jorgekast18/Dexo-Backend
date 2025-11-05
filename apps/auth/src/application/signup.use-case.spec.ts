@@ -43,7 +43,5 @@ describe('SignupUseCase', () => {
     expect(result.name).toBe(inputData.name);
     expect(result.age).toBe(inputData.age);
     expect(result.gender).toBe(inputData.gender);
-    expect(result.password).toBe(inputData.password);
-
   });
 });

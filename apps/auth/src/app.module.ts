@@ -1,16 +1,34 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PostgresDatabaseProvider } from './config/database.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggerService, LoggingInterceptor, LogRecord } from '@dexo-app-monorepo/logging';
 
 import environmentVars from './config/environment';
 import { SignupUseCase } from './application/signup.use-case';
-import { UserRepository } from './infrastructure/user.memory.repository';
+import { UserRepository } from './infrastructure/repositories/user.db.repository';
 import { AuthController } from './interfaces/auth.controller';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserEntity } from './infrastructure/entities/user.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('database.host'),
+        port: configService.get<number>('database.port'),
+        username: configService.get<string>('database.username'),
+        password: configService.get<string>('database.password'),
+        database: configService.get<string>('database.name'),
+        entities: [LogRecord, UserEntity],
+        synchronize: configService.get('environment') !== 'production',
+      }),
+      inject: [ConfigService],
+    }),
+    TypeOrmModule.forFeature([LogRecord, UserEntity]),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [environmentVars],
@@ -19,11 +37,15 @@ import { AuthController } from './interfaces/auth.controller';
   ],
   controllers: [AppController, AuthController],
   providers: [
+    LoggerService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor
+    },
     AppService,
-    PostgresDatabaseProvider,
     SignupUseCase,
     { provide: 'IUserRepository', useClass: UserRepository }
   ],
-  exports: [PostgresDatabaseProvider]
+  exports: ['IUserRepository']
 })
 export class AppModule {}
