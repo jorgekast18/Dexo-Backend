@@ -121,5 +121,10 @@ Esta tabla de log, está compuesta por los siguientes campos:
 - **requestBody**: Cuerpo de la petición enviada al microservicio (por ejemplo, datos del usuario).
 - **responseBody**: Cuerpo de la respuesta devuelta por el microservicio (por ejemplo, mensaje de éxito).
 
+### Ejecución de test en el pipeline Action de GitHub
 
+Se ha configurado un pipeline de integración continua utilizando GitHub Actions para ejecutar las pruebas unitarias automáticamente en cada push o pull request.
 
+Se conecta Nx Cloud con el repositorio de GitHub para optimizar la ejecución de las tareas y aprovechar el caching distribuido.
+
+![Ejecución de tests en GitHub Actions](../assets/imgs/action_test_nx.png)
