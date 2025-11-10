@@ -1,0 +1,18 @@
+services:
+  transaction:
+    build:
+      context: ../../
+      dockerfile: apps/transactions/Dockerfile
+    container_name: transaction_service
+    ports:
+      - "${TRANSACTION_PORT:-3002}:3002"
+    env_file:
+      - .env
+      - ../../.env
+    networks:
+      - dexo_network
+    restart: on-failure
+
+networks:
+  dexo_network:
+    external: true
