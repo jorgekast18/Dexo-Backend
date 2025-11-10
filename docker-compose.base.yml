@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  service_name:
+    build:
+      context: ${AUTH_BUILD_CONTEXT:-../../}
+      dockerfile: ${AUTH_DOCKERFILE:-apps/auth/Dockerfile}
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+    image: ${AUTH_IMAGE:-auth_service:latest}
+    container_name: ${AUTH_CONTAINER_NAME:-auth_service}
+    ports:
+      - "${AUTH_PORT:-3001}:${AUTH_INTERNAL_PORT:-3000}"
+    env_file:
+      - .env
+      - ../../.env
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+    restart: on-failure
+    networks:
+      - dexo_network
+
+networks:
+  dexo_network:
+    driver: bridge

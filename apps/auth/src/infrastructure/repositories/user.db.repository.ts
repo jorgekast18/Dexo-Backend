@@ -21,8 +21,7 @@ export class UserRepository implements UserRepositoryInterface {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const result = await this.userRepository.findOne({ where: { email }});
-    if (!result) return null;
-    return UserMapper.toDomain(result);
+    const result: UserEntity = await this.userRepository.findOne({ where: { email }});
+    return result ? UserMapper.toDomain(result) : null;
   }
 }

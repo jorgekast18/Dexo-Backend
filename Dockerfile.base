@@ -10,7 +10,7 @@ COPY eslint.config.js jest.preset.js ./
 
 # Copia los apps necesarios
 COPY apps/auth ./apps/auth
-COPY libs ./libs
+# COPY libs ./libs
 
 # Instala dependencias
 RUN npm ci --legacy-peer-deps
