@@ -29,6 +29,6 @@ COPY --from=builder /app/node_modules ./node_modules
 # Si tu app necesita package.json en runtime:
 COPY --from=builder /app/package*.json ./
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["node", "main.js"]
