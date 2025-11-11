@@ -43,7 +43,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/dexo-auth
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/auth
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -87,7 +87,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/dexo-transactions
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/transactions
           tags: |
             type=ref,event=branch
             type=ref,event=pr
