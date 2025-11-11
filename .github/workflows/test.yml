@@ -28,5 +28,8 @@ jobs:
       - name: Install nx
         run: npm install -g nx
 
-      - name: Exec test
+      - name: Exec Auth test
         run: nx test auth
+
+      - name: Exec Transactions test
+        run: nx test transactions

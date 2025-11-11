@@ -1,11 +1,11 @@
 services:
-  auth:
+  transaction:
     build:
       context: ../../
-      dockerfile: apps/auth/Dockerfile
-    container_name: auth_service
+      dockerfile: apps/transactions/Dockerfile
+    container_name: transaction_service
     ports:
-      - "${AUTH_PORT:-3001}:3001"
+      - "${TRANSACTION_PORT:-3002}:3002"
     env_file:
       - .env
       - ../../.env

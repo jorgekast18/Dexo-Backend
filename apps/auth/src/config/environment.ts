@@ -10,3 +10,6 @@ export default () => ({
     version: process.env.POSTGRES_VERSION,
   },
 });
+
+export const getJwtSecret = () =>
+  process.env.JWT_SECRET || 'SuperSecretKeyChangeMe!';

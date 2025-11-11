@@ -4,16 +4,22 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerService, LoggingInterceptor, LogRecord } from '@dexo-app-monorepo/logging';
 
-import environmentVars from './config/environment';
+import environmentVars, { getJwtSecret } from './config/environment';
 import { SignupUseCase } from './application/signup.use-case';
 import { UserRepository } from './infrastructure/repositories/user.db.repository';
 import { AuthController } from './interfaces/auth.controller';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './infrastructure/entities/user.entity';
+import { LoginUseCase } from './application/login.use-case';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule.register({
+      secret: getJwtSecret(),
+      signOptions: { expiresIn: '1h' },
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -44,6 +50,7 @@ import { UserEntity } from './infrastructure/entities/user.entity';
     },
     AppService,
     SignupUseCase,
+    LoginUseCase,
     { provide: 'IUserRepository', useClass: UserRepository }
   ],
   exports: ['IUserRepository']
