@@ -222,6 +222,7 @@ Cada job sigue estos pasos:
 2. **Configuración de Docker Buildx**: Prepara el entorno para construir imágenes Docker.
 3. **Login en GitHub Container Registry**: Autentica el action para poder subir las imágenes.
 4. **Extracción de metadata**: Genera etiquetas y metadatos para la imagen Docker basada en la rama, versión y commit.
+
    5. **Construcción y publicación de la imagen Docker**: Construye la imagen utilizando el Dockerfile específico del microservicio y la sube al registro con las etiquetas generadas.
    6. **Variables de entorno**: Se utilizan variables de entorno para definir el registro y el prefijo de la imagen, facilitando la configuración y reutilización del action.
    7. **Disparadores del workflow**: El action se ejecuta automáticamente en eventos de push a las ramas `main` y `develop`, así como en pull requests hacia `main`. También puede ser ejecutado manualmente mediante `workflow_dispatch`.
