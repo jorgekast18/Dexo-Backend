@@ -11,6 +11,10 @@ import { TransactionEntity } from './infrastructure/entities/transaction.entity'
 import { TransactionTypeEntity } from './infrastructure/entities/transaction-type.entity';
 import { CategoryEntity } from './infrastructure/entities/category.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { GetAllTransactionsUseCase } from './application/get-all-transactions.use-case';
+import { GetTransactionByIdUseCase } from './application/get-transaction-by-id.use-case';
+import { UpdateTransactionUseCase } from './application/update-transaction.use-case';
+import { DeleteTransactionUseCase } from './application/delete-transaction.use-case';
 
 @Module({
   imports: [
@@ -26,6 +30,10 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
   providers: [
     LoggerService,
     CreateTransactionUseCase,
+    GetAllTransactionsUseCase,
+    GetTransactionByIdUseCase,
+    UpdateTransactionUseCase,
+    DeleteTransactionUseCase,
     {
       provide: 'ITransactionRepository',
       useClass: TransactionDbRepository,

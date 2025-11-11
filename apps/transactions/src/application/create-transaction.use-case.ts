@@ -3,7 +3,6 @@ import { ITransactionRepository } from '../domain/ports/transaction.repository.i
 import { ITransactionTypeRepository } from '../domain/ports/transaction-type.repository.interface';
 import { ICategoryRepository } from '../domain/ports/category.repository.interface';
 import { TransactionModel } from '../domain/models/transaction.model';
-import { v4 as uuidv4 } from 'uuid';
 
 export class CreateTransactionUseCaseDto {
   userId: string;
@@ -45,8 +44,7 @@ export class CreateTransactionUseCase {
     }
 
     // Crear el modelo de transacción
-    const transaction = new TransactionModel(
-      uuidv4(),
+    const transaction = TransactionModel.createTransaction(
       dto.userId,
       dto.transactionTypeId,
       dto.categoryId,

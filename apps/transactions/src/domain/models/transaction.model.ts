@@ -9,4 +9,21 @@ export class TransactionModel {
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {}
+
+  static createTransaction(
+    userId: string,
+    transactionTypeId: string,
+    categoryId: string,
+    amount: number,
+    description?: string
+  ): TransactionModel {
+    return new TransactionModel(
+      '',
+      userId,
+      transactionTypeId,
+      categoryId,
+      amount,
+      description
+    );
+  }
 }

@@ -35,6 +35,8 @@ Primero, definimos un servicio llamado `service_name` en nuestro archivo `docker
 
 La base es un container de JavaScript (Node.js) optimizado para producción, lo que garantiza un entorno estable y eficiente para ejecutar nuestras aplicaciones.
 
+### Dockerfile Base:
+
 Luego, se define **Dockerfile.base** que sirve como plantilla para construir imágenes de Docker para diferentes microservicios. Este Dockerfile utiliza una imagen base de Node.js, instala las dependencias necesarias y copia el código fuente al contenedor.
 
 ````Dockerfile
@@ -79,4 +81,23 @@ Primero, el Dockerfile define una etapa de construcción (`builder`) que utiliza
 Luego, se instalan las dependencias utilizando `npm ci` y se ejecuta el comando de build de Nx para compilar la aplicación en modo producción.
 
 Finalmente, en la etapa final, se crea una nueva imagen base de Node.js en Alpine Linux y se copian los archivos compilados desde la etapa de construcción. Se expone el puerto 3000 y se define el comando para iniciar la aplicación. El puerto debe cambiar de acuerdo al microservicio que se esté configurando.
+
+### Justificación de los contenedores elegidos:
+
+1. **Docker**: Es la plataforma de contenedorización más popular y ampliamente utilizada. Su ecosistema robusto y su facilidad de integración con herramientas de CI/CD lo hacen ideal para proyectos modernos.
+2. **Node.js**: Dado que nuestras aplicaciones están desarrolladas en JavaScript/TypeScript, Node.js es la elección natural para ejecutar nuestro código en contenedores. La versión Alpine asegura que las imágenes sean ligeras y eficientes.
+3. **Multi-stage Builds**: Utilizar multi-stage builds en Docker nos permite optimizar el tamaño de las imágenes finales al separar el proceso de construcción del entorno de ejecución, lo que resulta en contenedores más pequeños y seguros.
+
+En la siguiente imagen se describen los clústeres de servicios que componen la arquitectura de la aplicación:
+
+![Diagrama de Clústeres de Servicios](../assets/imgs/clustering.png)
+
+En la parte de arriba podemos observar los endpoints de los servicios que son expuestos al usuario final a través del API Gateway. Estos servicios se comunican internamente con otros microservicios para cumplir con las funcionalidades requeridas.
+
+Luego, se ve el cluestering conformado por los microservicios principales (Auth y Transactions). Ambos microservicios tienen una arquitectura hexagonal que les permite interactuar con otros servicios y bases de datos de manera independiente.
+
+Finalmente, en la parte inferior se encuentran los servicios de soporte como las bases de datos (PostgreSQL).
+
+Es decir, que cada cluster es un contenedor independiente que se comunica con otros contenedores a través de la red **dexo_network** definida en Docker Compose. Esta arquitectura modular facilita el mantenimiento, escalabilidad y despliegue de la aplicación en diferentes entornos.
+
 

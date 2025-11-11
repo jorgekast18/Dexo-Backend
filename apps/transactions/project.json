@@ -21,6 +21,14 @@
           "buildTarget": "transactions:build:production"
         }
       }
+    },
+    "docker-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/transactions",
+        "command": "docker compose up -d --build",
+        "parallel": false
+      }
     }
   }
 }
