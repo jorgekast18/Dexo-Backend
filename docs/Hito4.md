@@ -100,4 +100,152 @@ Finalmente, en la parte inferior se encuentran los servicios de soporte como las
 
 Es decir, que cada cluster es un contenedor independiente que se comunica con otros contenedores a través de la red **dexo_network** definida en Docker Compose. Esta arquitectura modular facilita el mantenimiento, escalabilidad y despliegue de la aplicación en diferentes entornos.
 
+### Publish Docker Images:
+
+Para publicar las imágenes de Docker se crea un action de GitHub Actions que se encarga de construir y subir las imágenes a Docker Hub cada vez que se hace un pull request a la rama main.
+
+````yml
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'apps/auth/**'
+      - 'apps/transactions/**'
+      - '.github/workflows/docker-publish.yml'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}
+
+jobs:
+  build-auth:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.PACKAGE_TOKEN }}
+
+      - name: Extract metadata for Auth
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/dexo-auth
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Auth Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/auth/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-transactions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.PACKAGE_TOKEN }}
+
+      - name: Extract metadata for Transactions
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/dexo-transactions
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Transactions Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/transactions/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+````
+
+El action tiene dos jobs principales: `build-auth` y `build-transactions`, cada uno encargado de construir y publicar la imagen Docker correspondiente a su microservicio.
+
+Cada job sigue estos pasos:
+1. **Checkout del repositorio**: Clona el código fuente del repositorio.
+2. **Configuración de Docker Buildx**: Prepara el entorno para construir imágenes Docker.
+3. **Login en GitHub Container Registry**: Autentica el action para poder subir las imágenes.
+4. **Extracción de metadata**: Genera etiquetas y metadatos para la imagen Docker basada en la rama, versión y commit.
+   5. **Construcción y publicación de la imagen Docker**: Construye la imagen utilizando el Dockerfile específico del microservicio y la sube al registro con las etiquetas generadas.
+   6. **Variables de entorno**: Se utilizan variables de entorno para definir el registro y el prefijo de la imagen, facilitando la configuración y reutilización del action.
+   7. **Disparadores del workflow**: El action se ejecuta automáticamente en eventos de push a las ramas `main` y `develop`, así como en pull requests hacia `main`. También puede ser ejecutado manualmente mediante `workflow_dispatch`.
+   8. **Permisos**: Se configuran los permisos necesarios para que el action pueda leer el contenido del repositorio y escribir en el registro de paquetes.
+   9. **Caché de construcción**: Se utiliza la caché de GitHub Actions para acelerar el proceso de construcción de las imágenes Docker en ejecuciones posteriores.
+   10. **Separación de jobs**: Cada microservicio tiene su propio job, lo que permite una mayor modularidad y facilita la gestión de errores y tiempos de ejecución.
+   11. **Optimización de etiquetas**: Las etiquetas generadas permiten identificar fácilmente las imágenes según la rama, versión y commit, facilitando la gestión de versiones y despliegues.
+   12. **Flexibilidad en el contexto y Dockerfile**: Cada job especifica su propio contexto y Dockerfile, lo que permite construir imágenes personalizadas para cada microservicio sin interferencias.
+   13. **Uso de secretos**: La autenticación utiliza secretos almacenados en GitHub para garantizar la seguridad durante el proceso de login en el registro de contenedores.
+
+Con esta configuración, cada vez que se realice un cambio en los microservicios, las imágenes Docker se construirán y publicarán automáticamente, asegurando que siempre tengamos versiones actualizadas y listas para desplegar en cualquier entorno.
+
+La imagen a continuación muestra el action con los jobs de construcción y publicación de las imágenes Docker para los microservicios Auth y Transactions.
+
+![GitHub Actions Docker Publish](../assets/imgs/publish_docker.png)
+
+En la siguiente imagen, se puede observar la publicación de la imagen Auth:
+
+![Docker Hub Auth Image](../assets/imgs/build_auth.png)
+
+En la siguiente imagen, se puede observar la publicación de la imagen Transactions:
+![Docker Hub Transactions Image](../assets/imgs/build_transactions.png)
+
+En la siguiente imagen, se puede observar los paquetes publicados en GitHub Container Registry:
+
+![GitHub Container Registry Images](../assets/imgs/packages.png)
 
