@@ -249,3 +249,19 @@ En la siguiente imagen, se puede observar los paquetes publicados en GitHub Cont
 
 ![GitHub Container Registry Images](../assets/imgs/packages.png)
 
+### Ejecución de test:
+
+La ejecución de test se realiza mediante un action de GitHub Actions que se encarga de ejecutar los tests unitarios cada vez que se hace un push o pull request a las ramas principales.
+
+El resultado de la ejecución de los tests se muestra en la interfaz de GitHub Actions, donde se puede ver si los tests pasaron o fallaron, junto con los detalles de cada test.
+
+![GitHub Actions Test Execution](../assets/imgs/actions_tests.png)
+#### Auth Tests:
+
+![Auth Tests](../assets/imgs/auth_test.png)
+
+#### transactions Tests:
+
+![Transactions Tests](../assets/imgs/transactions_test.png)
+
+
