@@ -21,6 +21,7 @@ Mientras otras apps ofrecen funciones limitadas de inversión o recomendaciones 
 - [Hito 1](docs/Hito1.md)
 - [Hito 2](docs/Hito2.md)
 - [Hito 3](docs/Hito3.md)
+- [Hito 4](docs/Hito4.md)
 
 ## Instalación
 1. Clona el repositorio:
