@@ -82,7 +82,7 @@ jobs:
           psql -h localhost -p 5433 -U test_user -d test_db -c "SELECT version();"
 
       - name: Run Auth E2E tests
-        run: npx nx test:e2e auth
+        run: npx nx e2e-cov auth
         env:
           # ⬅️ Las mismas credenciales que usó el servicio PostgreSQL
           DB_HOST: localhost
