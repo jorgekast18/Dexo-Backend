@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoggerService, LoggingInterceptor, LogRecord } from '@dexo-app-monorepo/logging';
+import { LoggingInterceptor, LoggingModule } from '@dexo-app-monorepo/logging';
 import { DatabaseModule } from './config/database.module';
 import { TransactionController } from './interfaces/transaction.controller';
 import { CreateTransactionUseCase } from './application/create-transaction.use-case';
@@ -15,20 +15,28 @@ import { GetAllTransactionsUseCase } from './application/get-all-transactions.us
 import { GetTransactionByIdUseCase } from './application/get-transaction-by-id.use-case';
 import { UpdateTransactionUseCase } from './application/update-transaction.use-case';
 import { DeleteTransactionUseCase } from './application/delete-transaction.use-case';
+import { ConfigModule } from '@nestjs/config';
 
+console.log('process.env.MONGO_URI -->', process.env.MONGO_URI);
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '../../.env'],
+    }),
     DatabaseModule,
     TypeOrmModule.forFeature([
       TransactionEntity,
       TransactionTypeEntity,
       CategoryEntity,
-      LogRecord,
     ]),
+    LoggingModule.forRoot({
+      mongoUri: process.env.MONGO_URI,
+      serviceName: 'transactions-service',
+    }),
   ],
   controllers: [TransactionController],
   providers: [
-    LoggerService,
     CreateTransactionUseCase,
     GetAllTransactionsUseCase,
     GetTransactionByIdUseCase,

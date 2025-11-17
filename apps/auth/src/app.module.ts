@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerService, LoggingInterceptor, LogRecord } from '@dexo-app-monorepo/logging';
+import { LoggingInterceptor, LoggingModule } from '@dexo-app-monorepo/logging';
 
 import environmentVars, { getJwtSecret } from './config/environment';
 import { SignupUseCase } from './application/signup.use-case';
@@ -16,6 +16,10 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '../../.env'],
+    }),
     JwtModule.register({
       secret: getJwtSecret(),
       signOptions: { expiresIn: '1h' },
@@ -29,12 +33,16 @@ import { JwtModule } from '@nestjs/jwt';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
-        entities: [LogRecord, UserEntity],
+        entities: [UserEntity],
         synchronize: configService.get('environment') !== 'production',
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([LogRecord, UserEntity]),
+    LoggingModule.forRoot({
+      mongoUri: process.env.MONGO_URI,
+      serviceName: 'auth-service',
+    }),
+    TypeOrmModule.forFeature([UserEntity]),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [environmentVars],
@@ -43,7 +51,6 @@ import { JwtModule } from '@nestjs/jwt';
   ],
   controllers: [AppController, AuthController],
   providers: [
-    LoggerService,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor
