@@ -96,10 +96,21 @@ En la parte de arriba podemos observar los endpoints de los servicios que son ex
 
 Luego, se ve el cluestering conformado por los microservicios principales (Auth y Transactions). Ambos microservicios tienen una arquitectura hexagonal que les permite interactuar con otros servicios y bases de datos de manera independiente.
 
+En la parte izquierda se observa la lib de logging, que es utilizada por ambos microservicios para registrar eventos y errores de manera consistente.
+Esta lib tiene su propia base de datos (MongoDB) para almacenar los logs generados por los microservicios.
+
 Finalmente, en la parte inferior se encuentran los servicios de soporte como las bases de datos (PostgreSQL).
 
 Es decir, que cada cluster es un contenedor independiente que se comunica con otros contenedores a través de la red **dexo_network** definida en Docker Compose. Esta arquitectura modular facilita el mantenimiento, escalabilidad y despliegue de la aplicación en diferentes entornos.
 
+### Sistema de Logs:
+Para el sistema de logs, he implementado una solución basada en **MongoDB** para almacenar los logs generados por los microservicios. MongoDB es una base de datos NoSQL que ofrece flexibilidad y escalabilidad, lo que la hace ideal para manejar grandes volúmenes de datos de logs.
+Adicionalmente se toma esta decisión para que la base de datos de Logs sea independiente de la base de datos operativa, con esto podemos darnos cuenta de que los logs no afecten el rendimiento de las operaciones principales de la aplicación y que cuando el sistema se encuentre caido,
+  los logs puedan seguir siendo almacenados y consultados sin problemas.
+
+![Logs del sistema](../assets/imgs/logs_completos.png)
+
+En la imagen se puede observar 4 diferentes logs que se han capturado en la base de datos de MongoDB. Cada log contiene información relevante como el nivel del log (info, error, warning), el mensaje del log, la fecha y hora en que se generó, y otros metadatos útiles para el análisis y monitoreo del sistema.
 ### Publish Docker Images:
 
 Para publicar las imágenes de Docker se crea un action de GitHub Actions que se encarga de construir y subir las imágenes a Docker Hub cada vez que se hace un pull request a la rama main.
@@ -265,4 +276,12 @@ El resultado de la ejecución de los tests se muestra en la interfaz de GitHub A
 
 ![Transactions Tests](../assets/imgs/transactions_test.png)
 
+### Test E2E:
 
+Para las pruebas end-to-end (E2E), he implementado un action de GitHub Actions que ejecuta las pruebas E2E cada vez que se hace un push o pull request a las ramas principales.
+
+![Test E2E](../assets/imgs/e2e_test.png)
+
+La cobertura de las pruebas se muestra a continuación:
+
+![E2E Coverage](../assets/imgs/coverage_auth.png)

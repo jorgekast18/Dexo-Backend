@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:16
+    container_name: dexo-postgres-test
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    networks:
+      - dexo-test-network
+
+  mongodb-test:
+    image: mongo:8.0
+    container_name: dexo-mongodb-test
+    restart: always
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: logging_test
+    networks:
+      - dexo-test-network
+
+volumes:
+  postgres-test-data:
+
+networks:
+  dexo-test-network:
+    driver: bridge

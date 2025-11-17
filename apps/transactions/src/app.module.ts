@@ -17,12 +17,14 @@ import { UpdateTransactionUseCase } from './application/update-transaction.use-c
 import { DeleteTransactionUseCase } from './application/delete-transaction.use-case';
 import { ConfigModule } from '@nestjs/config';
 
-console.log('process.env.MONGO_URI -->', process.env.MONGO_URI);
+const envFileLocal: string = process.env.NODE_ENV === 'development'
+  ? '.env.development'
+  : '.env';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '../../.env'],
+      envFilePath: [envFileLocal, '../../.env'],
     }),
     DatabaseModule,
     TypeOrmModule.forFeature([

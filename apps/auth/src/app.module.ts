@@ -14,11 +14,15 @@ import { UserEntity } from './infrastructure/entities/user.entity';
 import { LoginUseCase } from './application/login.use-case';
 import { JwtModule } from '@nestjs/jwt';
 
+const envFileLocal: string = process.env.NODE_ENV === 'development'
+  ? '.env.development'
+  : '.env';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '../../.env'],
+      envFilePath: [envFileLocal, '../../.env'],
     }),
     JwtModule.register({
       secret: getJwtSecret(),

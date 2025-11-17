@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { SignupUseCase } from '../application/signup.use-case';
-import { SignupDto } from './signup.dto';
+import { SignupDto } from './dto/signup.dto';
 import { User } from '../domain/models/user.model';
 import { LoginUseCase } from '../application/login.use-case';
 import { LoginRequestDto, LoginResponseDto } from './dto/login.dto';
