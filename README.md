@@ -23,11 +23,17 @@ Mientras otras apps ofrecen funciones limitadas de inversión o recomendaciones 
 - [Hito 3](docs/Hito3.md)
 
 ## Instalación
+
+### Prequisitos
+
+- Docker >= 24.0
+- Docker Compose >= 2.20
+
 1. Clona el repositorio:
  ```bash
  git clone
   ```
-2. Navega al directorio del proyecto:
+2. Navega al directorio del proyecto y copia las variables de entorno en tu archivo .env
 ```bash
  cd dexo-app
  ```
@@ -51,6 +57,7 @@ AUTH_PORT=<Auth_port>
 
 **Nota**: En la raíz del proyecto, hay un archivo `.env.example` que sirve como plantilla para crear el archivo `.env` con las variables de entorno necesarias y en cada microservicio también encontrará un archivo similar que define
 las variables específicas para ese servicio.
+
 5. Inicia el servidor de desarrollo: Tener en cuenta que el proyecto ha sido construido con **NX** y también ha sido dockerizado.
 
 Se debe crear la red de docker personalizada:
@@ -58,19 +65,32 @@ Se debe crear la red de docker personalizada:
 docker network create dexo-network
 ```
 
+Construir las imágenes desde el código fuente
+```bash
+docker compose -f docker-compose.prod.yml pull
+```
+
+Levantar todo
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
 El siguiente paso es construir la imagen de la base de datos (PostgreSQL):
 
-Para seguir con este paso, se debe situar en el directorio raíz del proyecto y ejecutar el siguiente comando:
+Si desea solo construir imágenes sin levantar los contenedores, puede usar:
+
+Construir imagen de la base de datos postgresql:
 ```bash
 docker compose up -d
 ```
 
-Luego, para iniciar los servicios, se puede usar docker-compose o iniciar cada servicio por separado.
-
-Iniciar con docker-compose:
+Construir imagen de la base de datos mongo:
 ```bash
-nx docker-up <nombre-del-servicio>
+docker compose -f docker-compose.mongo.yml up -d
 ```
+
+Luego, para iniciar los servicios sin usar docker por separado.
+
 
 Iniciar con nx:
 ```bash
