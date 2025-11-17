@@ -92,7 +92,7 @@ jobs:
           echo "PostgreSQL is ready"
 
       - name: Run Auth E2E tests
-        run: npx nx test:e2e auth --verbose
+        run: npx nx e2e-cov auth --verbose
         env:
           DB_HOST: localhost
           DB_PORT: 5433
