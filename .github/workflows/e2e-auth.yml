@@ -26,11 +26,11 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: test_user  # ⬅️ VALORES FIJOS aquí, no secrets
+          POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_password_123
           POSTGRES_DB: test_db
         ports:
-          - 5433:5432
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -40,13 +40,13 @@ jobs:
       mongodb:
         image: mongo:8.0
         env:
-          MONGO_INITDB_ROOT_USERNAME: admin  # ⬅️ VALORES FIJOS aquí
+          MONGO_INITDB_ROOT_USERNAME: admin
           MONGO_INITDB_ROOT_PASSWORD: admin123
           MONGO_INITDB_DATABASE: logging_test
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})' || mongo --eval 'db.runCommand({ping: 1})'"
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")' || mongo --eval 'db.adminCommand(\"ping\")'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -67,26 +67,77 @@ jobs:
       - name: Build logging library
         run: npx nx build logging
 
-      - name: Verify database connections
+      - name: Install PostgreSQL client
         run: |
-          echo "Checking PostgreSQL connection..."
-          # Usar las mismas credenciales que en el servicio
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Debug database connection
+        run: |
+          echo "=== DATABASE CONNECTION DEBUG ==="
+          echo "Checking PostgreSQL service..."
+          pg_isready -h localhost -p 5432 || echo "pg_isready failed"
+
+          echo ""
+          echo "Testing connection with psql..."
           export PGPASSWORD=test_password_123
-          until pg_isready -h localhost -p 5433 -U test_user > /dev/null 2>&1; do
-            echo "Waiting for PostgreSQL..."
+          psql -h localhost -p 5432 -U test_user -d test_db -c "SELECT version();" || echo "psql connection failed"
+
+          echo ""
+          echo "Checking if PostgreSQL is accepting connections..."
+          psql -h localhost -p 5432 -U test_user -d postgres -c "SELECT current_database();" || echo "Connection to postgres db failed"
+
+          echo ""
+          echo "Listing databases..."
+          psql -h localhost -p 5432 -U test_user -d postgres -c "\l" || echo "List databases failed"
+
+          echo ""
+          echo "Testing MongoDB connection..."
+          mongosh "mongodb://admin:admin123@localhost:27017/admin" --eval "db.runCommand({ ping: 1 })" || echo "MongoDB connection failed"
+
+          echo "=== END DEBUG ==="
+
+      - name: Wait for databases to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be fully ready..."
+          for i in {1..30}; do
+            export PGPASSWORD=test_password_123
+            if psql -h localhost -p 5432 -U test_user -d test_db -c "SELECT 1;" > /dev/null 2>&1; then
+              echo "✅ PostgreSQL is ready!"
+              break
+            fi
+            echo "Attempt $i/30: PostgreSQL not ready yet..."
             sleep 2
           done
-          echo "✅ PostgreSQL is ready"
 
-          # Verificar que podemos conectarnos
-          psql -h localhost -p 5433 -U test_user -d test_db -c "SELECT version();"
+          echo "Waiting for MongoDB to be fully ready..."
+          for i in {1..30}; do
+            if mongosh "mongodb://admin:admin123@localhost:27017/admin" --eval "db.runCommand({ ping: 1 })" > /dev/null 2>&1; then
+              echo "✅ MongoDB is ready!"
+              break
+            fi
+            echo "Attempt $i/30: MongoDB not ready yet..."
+            sleep 2
+          done
+
+      - name: Show environment variables
+        run: |
+          echo "=== ENVIRONMENT VARIABLES ==="
+          echo "DB_HOST: localhost"
+          echo "DB_PORT: 5432"
+          echo "DB_USERNAME: test_user"
+          echo "DB_NAME: test_db"
+          echo "Password length: ${#DB_PASSWORD}"
+          echo "NODE_ENV: test"
+          echo "==========================="
+        env:
+          DB_PASSWORD: test_password_123
 
       - name: Run Auth E2E tests
-        run: npx nx e2e-cov auth
+        run: npx nx test:e2e auth
         env:
-          # ⬅️ Las mismas credenciales que usó el servicio PostgreSQL
           DB_HOST: localhost
-          DB_PORT: 5433
+          DB_PORT: 5432
           DB_USERNAME: test_user
           DB_PASSWORD: test_password_123
           DB_NAME: test_db
@@ -101,6 +152,16 @@ jobs:
           name: auth-e2e-coverage
           path: coverage/apps/auth-e2e/
           retention-days: 7
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== SHOWING POSTGRESQL LOGS ==="
+          docker logs $(docker ps -q --filter ancestor=postgres:16) || echo "Could not get PostgreSQL logs"
+
+          echo ""
+          echo "=== SHOWING MONGODB LOGS ==="
+          docker logs $(docker ps -q --filter ancestor=mongo:8.0) || echo "Could not get MongoDB logs"
 
       - name: Test Summary
         if: always()
