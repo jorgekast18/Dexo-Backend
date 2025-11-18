@@ -285,3 +285,14 @@ Para las pruebas end-to-end (E2E), he implementado un action de GitHub Actions q
 La cobertura de las pruebas se muestra a continuación:
 
 ![E2E Coverage](../assets/imgs/coverage_auth.png)
+
+### CI Tests E2E:
+
+El step by step de la ejecución de los tests E2E se muestra a continuación:
+
+![CI Tests E2E Step by Step](../assets/imgs/e2e_action_setps.png)
+Se puede observar que primero se hace el checkout del código, luego se configuran las dependencias necesarias, se levantan los servicios con Docker Compose, se ejecutan los tests E2E y finalmente se detienen los servicios.
+
+Y el resultado final de la ejecución de los tests E2E es el siguiente:
+
+![CI Tests E2E](../assets/imgs/e2e_action.png)
