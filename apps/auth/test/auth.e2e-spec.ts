@@ -4,7 +4,7 @@ import request from 'supertest';
 import { TestAuthModule } from './test-auth.module';
 import { DataSource } from 'typeorm';
 
-describe('Auth E2E Tests', () => {
+describe('Auth E2E Tests ', () => {
   let app: INestApplication;
   let dataSource: DataSource;
 
