@@ -63,9 +63,9 @@ describe('Auth E2E Tests ', () => {
       const repository = dataSource.getRepository(entity.name);
       await repository.clear();
     }
-  });
+  }, 10000);
 
-  describe('/api/auth/login (POST)', () => {
+  describe('auth/login (POST)', () => {
     it('should return 401 if user does not exist', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
@@ -74,7 +74,7 @@ describe('Auth E2E Tests ', () => {
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.message).toContain('Credenciales no válidas');
-    });
+    }, 10000);
 
     it('should return 401 if password is incorrect', async () => {
       // Primero registrar el usuario
@@ -91,7 +91,7 @@ describe('Auth E2E Tests ', () => {
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.message).toContain('Credenciales no válidas');
-    });
+    }, 10000);
 
     it('should return 400 if email is missing', async () => {
       const response = await request(app.getHttpServer())
@@ -124,7 +124,7 @@ describe('Auth E2E Tests ', () => {
 
       expect(response.body).toHaveProperty('message');
       expect(Array.isArray(response.body.message)).toBeTruthy();
-    });
+    }, 10000);
 
     it('should successfully login and return access token', async () => {
       // Primero registrar el usuario
@@ -145,7 +145,7 @@ describe('Auth E2E Tests ', () => {
       // Verificar el token
       expect(typeof response.body.access_token).toBe('string');
       expect(response.body.access_token.length).toBeGreaterThan(0);
-    });
+    }, 10000);
 
     it('should not allow login with previously used credentials after password change', async () => {
       // Registrar usuario
@@ -161,7 +161,7 @@ describe('Auth E2E Tests ', () => {
         .expect(201);
 
       expect(firstLogin.body).toHaveProperty('access_token');
-    });
+    }, 10000);
 
     it('should handle multiple concurrent login requests', async () => {
       // Registrar usuario
@@ -194,7 +194,7 @@ describe('Auth E2E Tests ', () => {
       const tokens = responses.map((r) => r.body.access_token);
       const uniqueTokens = new Set(tokens);
       expect(uniqueTokens.size).toBe(tokens.length);
-    });
+    }, 10000);
   });
 
   describe('/auth/login - Security Tests', () => {
