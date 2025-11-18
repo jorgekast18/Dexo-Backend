@@ -4,7 +4,6 @@ import { getDatabaseConfig } from './environment';
 import { TransactionEntity } from '../infrastructure/entities/transaction.entity';
 import { TransactionTypeEntity } from '../infrastructure/entities/transaction-type.entity';
 import { CategoryEntity } from '../infrastructure/entities/category.entity';
-import { LogRecord } from '@dexo-app-monorepo/logging';
 
 @Module({
   imports: [
@@ -12,10 +11,10 @@ import { LogRecord } from '@dexo-app-monorepo/logging';
       type: 'postgres',
       ...getDatabaseConfig(),
       entities: [
-        TransactionEntity,
-        TransactionTypeEntity,
-        CategoryEntity,
-        LogRecord],
+          TransactionEntity,
+          TransactionTypeEntity,
+          CategoryEntity,
+        ],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
     }),

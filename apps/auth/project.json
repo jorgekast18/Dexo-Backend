@@ -29,6 +29,15 @@
         "command": "docker compose up -d --build",
         "parallel": false
       }
+    },
+    "e2e-cov": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/auth/test",
+        "command": "jest --config jest-e2e.json --coverage --runInBand",
+        "parallel": false
+      }
     }
   }
 }
+

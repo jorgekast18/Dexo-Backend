@@ -1,0 +1,20 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "testTimeout": 30000,
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "tsconfig": {
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "module": "commonjs",
+        "target": "ES2021"
+      }
+    }]
+  },
+  "moduleNameMapper": {
+    "^@dexo-app-monorepo/logging(.*)$": "<rootDir>/../../../libs/logging/src/$1"
+  }
+}

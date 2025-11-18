@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:16
+    container_name: dexo-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dexo_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
+      POSTGRES_DB: ${POSTGRES_DB:-dexo_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - dexo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dexo_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Base de datos MongoDB para logs
+  mongodb:
+    image: mongo:8.0
+    container_name: dexo-mongodb-prod
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-change_this_password}
+      MONGO_INITDB_DATABASE: logging
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - dexo-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio Auth
+  auth:
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/dexo-backend}/auth:latest
+    container_name: dexo-auth
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-dexo_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
+      DB_NAME: ${POSTGRES_DB:-dexo_db}
+      MONGO_URI: mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-change_this_password}@mongodb:27017/logging?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-change_this_jwt_secret_min_32_chars}
+    ports:
+      - "${AUTH_PORT:-3000}:3000"
+    networks:
+      - dexo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Microservicio Transactions
+  transactions:
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/dexo-backend}/transactions:latest
+    container_name: dexo-transactions
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-dexo_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
+      DB_NAME: ${POSTGRES_DB:-dexo_db}
+      MONGO_URI: mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-change_this_password}@mongodb:27017/logging?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-change_this_jwt_secret_min_32_chars}
+    ports:
+      - "${TRANSACTIONS_PORT:-3001}:3001"
+    networks:
+      - dexo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Interfaz web de MongoDB (opcional, solo para desarrollo)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: dexo-mongo-express
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-change_this_password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-change_this_password}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
+    networks:
+      - dexo-network
+
+volumes:
+  postgres-data:
+    driver: local
+  mongo-data:
+    driver: local
+  mongo-config:
+    driver: local
+
+networks:
+  dexo-network:
+    driver: bridge

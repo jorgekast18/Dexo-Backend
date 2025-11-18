@@ -9,6 +9,9 @@ export default () => ({
     name: process.env.POSTGRES_DB,
     version: process.env.POSTGRES_VERSION,
   },
+  mongodb: {
+    uri: process.env.MONGO_URI,
+  }
 });
 
 export const getJwtSecret = () =>
