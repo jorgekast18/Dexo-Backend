@@ -25,7 +25,7 @@ import { LoggingModule } from '@dexo-app-monorepo/logging';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
-      port: 5433,
+      port: 5432,
       username: 'test_user',
       password: 'test_password',
       database: 'test_db',
@@ -41,7 +41,7 @@ import { LoggingModule } from '@dexo-app-monorepo/logging';
       signOptions: { expiresIn: '1h' },
     }),
     LoggingModule.forRoot({
-      mongoUri: 'mongodb://admin:admin123@localhost:27018/logging_test?authSource=admin',
+      mongoUri: 'mongodb://admin:admin123@localhost:27017/logging_test?authSource=admin',
     }),
   ],
   controllers: [AuthController],
