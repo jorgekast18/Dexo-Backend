@@ -38,18 +38,17 @@ jobs:
           --health-retries 5
 
       mongodb:
-        image: mongo:8.0
+        image: mongo:7.0
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
           MONGO_INITDB_ROOT_PASSWORD: admin123
-          MONGO_INITDB_DATABASE: logging_test
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")' || mongo --eval 'db.adminCommand(\"ping\")'"
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' --host localhost --port 27017"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
       - name: Checkout code
@@ -67,71 +66,65 @@ jobs:
       - name: Build logging library
         run: npx nx build logging
 
-      - name: Install PostgreSQL client
+      - name: Install database clients
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Debug database connection
-        run: |
-          echo "=== DATABASE CONNECTION DEBUG ==="
-          echo "Checking PostgreSQL service..."
-          pg_isready -h localhost -p 5432 || echo "pg_isready failed"
+          # Instalar mongosh
+          wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
 
-          echo ""
-          echo "Testing connection with psql..."
+      - name: Wait and verify databases
+        run: |
+          echo "=== VERIFYING POSTGRESQL ==="
           export PGPASSWORD=test_password_123
-          psql -h localhost -p 5432 -U test_user -d test_db -c "SELECT version();" || echo "psql connection failed"
 
-          echo ""
-          echo "Checking if PostgreSQL is accepting connections..."
-          psql -h localhost -p 5432 -U test_user -d postgres -c "SELECT current_database();" || echo "Connection to postgres db failed"
-
-          echo ""
-          echo "Listing databases..."
-          psql -h localhost -p 5432 -U test_user -d postgres -c "\l" || echo "List databases failed"
-
-          echo ""
-          echo "Testing MongoDB connection..."
-          mongosh "mongodb://admin:admin123@localhost:27017/admin" --eval "db.runCommand({ ping: 1 })" || echo "MongoDB connection failed"
-
-          echo "=== END DEBUG ==="
-
-      - name: Wait for databases to be ready
-        run: |
-          echo "Waiting for PostgreSQL to be fully ready..."
           for i in {1..30}; do
-            export PGPASSWORD=test_password_123
             if psql -h localhost -p 5432 -U test_user -d test_db -c "SELECT 1;" > /dev/null 2>&1; then
               echo "✅ PostgreSQL is ready!"
+              psql -h localhost -p 5432 -U test_user -d test_db -c "SELECT version();"
               break
             fi
-            echo "Attempt $i/30: PostgreSQL not ready yet..."
+            echo "Attempt $i/30: Waiting for PostgreSQL..."
             sleep 2
           done
 
-          echo "Waiting for MongoDB to be fully ready..."
+          echo ""
+          echo "=== VERIFYING MONGODB ==="
+
           for i in {1..30}; do
-            if mongosh "mongodb://admin:admin123@localhost:27017/admin" --eval "db.runCommand({ ping: 1 })" > /dev/null 2>&1; then
+            if mongosh "mongodb://admin:admin123@localhost:27017/admin?authSource=admin" --quiet --eval "db.runCommand({ ping: 1 })" > /dev/null 2>&1; then
               echo "✅ MongoDB is ready!"
+              mongosh "mongodb://admin:admin123@localhost:27017/admin?authSource=admin" --quiet --eval "db.version()"
               break
             fi
-            echo "Attempt $i/30: MongoDB not ready yet..."
+            echo "Attempt $i/30: Waiting for MongoDB..."
             sleep 2
           done
 
-      - name: Show environment variables
+          echo ""
+          echo "=== CREATING TEST DATABASE IN MONGODB ==="
+          mongosh "mongodb://admin:admin123@localhost:27017/admin?authSource=admin" --quiet --eval "
+            use logging_test;
+            db.createCollection('test');
+            db.test.insertOne({ test: 'connection' });
+            db.test.findOne();
+          " || echo "Failed to create test database"
+
+      - name: Verify environment configuration
         run: |
-          echo "=== ENVIRONMENT VARIABLES ==="
+          echo "=== TEST CONFIGURATION ==="
           echo "DB_HOST: localhost"
           echo "DB_PORT: 5432"
           echo "DB_USERNAME: test_user"
           echo "DB_NAME: test_db"
-          echo "Password length: ${#DB_PASSWORD}"
+          echo "MONGO_URI: mongodb://admin:***@localhost:27017/logging_test?authSource=admin"
+          echo "JWT_SECRET length: 50 chars"
           echo "NODE_ENV: test"
-          echo "==========================="
-        env:
-          DB_PASSWORD: test_password_123
+          echo "========================="
 
       - name: Run Auth E2E tests
         run: npx nx test:e2e auth
@@ -142,8 +135,19 @@ jobs:
           DB_PASSWORD: test_password_123
           DB_NAME: test_db
           MONGO_URI: mongodb://admin:admin123@localhost:27017/logging_test?authSource=admin
-          JWT_SECRET: test-jwt-secret-for-ci-minimum-32-characters
+          JWT_SECRET: test-jwt-secret-for-ci-minimum-32-characters-long
           NODE_ENV: test
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== POSTGRESQL LOGS ==="
+          docker ps -a
+          docker logs $(docker ps -q --filter ancestor=postgres:16) 2>&1 || echo "No PostgreSQL logs available"
+
+          echo ""
+          echo "=== MONGODB LOGS ==="
+          docker logs $(docker ps -q --filter ancestor=mongo:7.0) 2>&1 || echo "No MongoDB logs available"
 
       - name: Upload coverage
         if: always()
@@ -153,31 +157,22 @@ jobs:
           path: coverage/apps/auth-e2e/
           retention-days: 7
 
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          echo "=== SHOWING POSTGRESQL LOGS ==="
-          docker logs $(docker ps -q --filter ancestor=postgres:16) || echo "Could not get PostgreSQL logs"
-
-          echo ""
-          echo "=== SHOWING MONGODB LOGS ==="
-          docker logs $(docker ps -q --filter ancestor=mongo:8.0) || echo "Could not get MongoDB logs"
-
       - name: Test Summary
         if: always()
         run: |
           echo "## 🧪 Auth E2E Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ All tests passed successfully!" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Tests failed. Check logs above." >> $GITHUB_STEP_SUMMARY
+            echo "❌ Tests failed. Check the logs for details." >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Environment" >> $GITHUB_STEP_SUMMARY
-          echo "- Node.js: 20" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Environment" >> $GITHUB_STEP_SUMMARY
+          echo "- Node.js: 20.x" >> $GITHUB_STEP_SUMMARY
           echo "- PostgreSQL: 16" >> $GITHUB_STEP_SUMMARY
-          echo "- MongoDB: 8.0" >> $GITHUB_STEP_SUMMARY
+          echo "- MongoDB: 7.0" >> $GITHUB_STEP_SUMMARY
+          echo "- Database: test_db" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()
@@ -188,9 +183,12 @@ jobs:
             const emoji = status === 'success' ? '✅' : '❌';
             const message = `${emoji} **Auth Service E2E Tests ${status === 'success' ? 'Passed' : 'Failed'}**
 
-            ${status === 'success' ? 'All tests completed successfully!' : 'Some tests failed. Please check the Actions logs.'}
+            ${status === 'success' ? 'All tests completed successfully! 🎉' : 'Some tests failed. Please check the [Actions logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'}
 
-            [View full test results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            **Test Environment:**
+            - PostgreSQL: 16
+            - MongoDB: 7.0
+            - Node.js: 20.x`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
