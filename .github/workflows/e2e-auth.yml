@@ -127,7 +127,7 @@ jobs:
           echo "========================="
 
       - name: Run Auth E2E tests
-        run: npx nx test:e2e auth
+        run: npx nx e2e-cov auth
         env:
           DB_HOST: localhost
           DB_PORT: 5432
