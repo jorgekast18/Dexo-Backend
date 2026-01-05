@@ -3,17 +3,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { getPort } from './config/environment';
 
-import { SentryExceptionFilter, initializeSentry } from '@dexo-app-monorepo/shared';
+//import { SentryExceptionFilter, initializeSentry } from '@dexo-app-monorepo/shared';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';
 
-  app.useGlobalFilters(new SentryExceptionFilter('transactions-service'));
+  //app.useGlobalFilters(new SentryExceptionFilter('transactions-service'));
 
-  initializeSentry({
-    serviceName: 'transactions-service',
-  });
+  // initializeSentry({
+  //   serviceName: 'transactions-service',
+  // });
 
   app.setGlobalPrefix(globalPrefix);
   app.useGlobalPipes(new ValidationPipe({
