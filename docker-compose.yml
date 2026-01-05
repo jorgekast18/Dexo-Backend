@@ -6,7 +6,7 @@ services:
   # ----------------------------
 
   # PostgreSQL (Para el servicio que use SQL)
-  postgres:
+  dexo_postgres:
     image: postgres:16
     container_name: dexo_postgres
     restart: always
@@ -82,10 +82,10 @@ services:
     environment:
       # Sobrescribimos variables para asegurar conexión interna
       # Ajusta esto si tu app usa otras variables para conectar a DB
-      DB_HOST: postgres
+      DB_HOST: dexo_postgres
       DB_PORT: 5432
     depends_on:
-      postgres:
+      dexo_postgres:
         condition: service_healthy
     networks:
       - dexo_network
