@@ -105,7 +105,8 @@ services:
       - .env
     environment:
       # Sobrescribimos variables para asegurar conexión interna
-      MONGO_URI: "mongodb://admin:password@mongodb:27017"
+      DB_HOST: dexo_postgres
+      DB_PORT: 5432
     depends_on:
       - mongodb
     networks:
