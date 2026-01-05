@@ -5,7 +5,6 @@ services:
     image: postgres:16
     container_name: dexo_postgres
     restart: always
-    # Cargamos variables desde él .env raíz que creamos
     env_file:
       - .env
     ports:
@@ -15,7 +14,8 @@ services:
     networks:
       - dexo_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d dexo_db"] # Ajusta si cambias usuario en .env
+      # CORREGIDO: Usamos el usuario 'postgres' que sí existe
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dexo_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,11 +24,9 @@ services:
     image: mongo:8.0
     container_name: dexo-mongodb
     restart: always
-    # Cargamos variables raíz (necesita MONGO_USER/PASS)
     env_file:
       - .env
     environment:
-      # Mapeamos tus variables del .env a las de Mongo
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: logging
@@ -45,15 +43,15 @@ services:
       context: .
       dockerfile: apps/auth/Dockerfile
     ports:
-      - "8080:${AUTH_PORT}" # Usa variable del .env
+      - "8080:${AUTH_PORT}"
     env_file:
-      - .env             # Raíz
-      - apps/auth/.env   # Específico
+      - .env
+      - apps/auth/.env
     environment:
-      # IMPORTANTE: Forzamos el paso de estas variables críticas
-      # para que estén disponibles en process.env INMEDIATAMENTE
       MONGO_URI: ${MONGO_URI}
-      POSTGRES_HOST: postgres # Forzamos el host correcto
+      POSTGRES_HOST: postgres
+      # Aseguramos que la app también use el usuario correcto
+      POSTGRES_USER: postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,6 +74,7 @@ services:
     environment:
       MONGO_URI: ${MONGO_URI}
       POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
     depends_on:
       mongodb:
         condition: service_started
