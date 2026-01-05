@@ -49,6 +49,24 @@ jobs:
             ./dist ./package.json ./package-lock.json ./docker-compose.yml ./apps \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
 
+      # 4.1 Crear archivos .env en el servido
+      - name: Create .env files on server
+        run: |
+            ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+              cd /home/ec2-user/app
+
+              # 1. Crear .env RAÍZ
+              echo "${{ secrets.ENV_ROOT }}" > .env
+
+              # 2. Crear .env para AUTH
+              mkdir -p apps/auth
+              echo "${{ secrets.ENV_AUTH }}" > apps/auth/.env
+
+              # 3. Crear .env para TRANSACTION
+              mkdir -p apps/transactions
+              echo "${{ secrets.ENV_TRANSACTION }}" > apps/transactions/.env
+            EOF
+
       # 5. Desplegar en el servidor
       - name: Deploy with Docker Compose
         run: |
