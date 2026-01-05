@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-16}
+    container_name: dexo_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - dexo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+networks:
+  dexo_network:
+    external: true

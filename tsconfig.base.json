@@ -16,7 +16,8 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@dexo-app-monorepo/logging": ["libs/logging/src/index.ts"]
+      "@dexo-app-monorepo/logging": ["libs/logging/src/index.ts"],
+      "@dexo-app-monorepo/shared": ["libs/shared/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

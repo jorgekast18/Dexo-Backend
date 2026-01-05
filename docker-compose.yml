@@ -1,6 +1,13 @@
+version: '3.8'
+
 services:
+  # ----------------------------
+  # BASES DE DATOS
+  # ----------------------------
+
+  # PostgreSQL (Para el servicio que use SQL)
   postgres:
-    image: postgres:${POSTGRES_VERSION:-16}
+    image: postgres:16
     container_name: dexo_postgres
     restart: always
     environment:
@@ -8,18 +15,110 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-appdb}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - dexo_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-appdb}"]
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
+
+  # MongoDB (Para el servicio que use NoSQL)
+  mongodb:
+    image: mongo:8.0
+    container_name: dexo-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: logging
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - dexo_network
+
+  # Mongo Express (Interfaz visual para ver tus datos Mongo)
+  # NOTA: Lo puse en el puerto 8082 para no chocar.
+  # Si quieres verlo, tendrás que abrir el puerto 8082 en AWS.
+  mongo-express:
+    image: mongo-express:latest
+    container_name: dexo-mongo-express
+    restart: always
+    ports:
+      - "8082:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongodb
+    networks:
+      - dexo_network
+
+  # ----------------------------
+  # MICROSERVICIOS
+  # ----------------------------
+
+  # Servicio de Autenticación
+  auth:
+    container_name: auth_service
+    # Asume que tu Dockerfile está en apps/auth/Dockerfile
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile
+    # MAPEO CLAVE: Puerto 3001 del contenedor sale por el 8080 de AWS
+    ports:
+      - "8080:3001"
+    env_file:
+      - .env
+    environment:
+      # Sobrescribimos variables para asegurar conexión interna
+      # Ajusta esto si tu app usa otras variables para conectar a DB
+      DB_HOST: postgres
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dexo_network
+    restart: on-failure
+
+  # Servicio de Transacciones
+  transaction:
+    container_name: transaction_service
+    # Asume que tu Dockerfile está en apps/transactions/Dockerfile
+    build:
+      context: .
+      dockerfile: apps/transactions/Dockerfile
+    # MAPEO CLAVE: Puerto 3002 del contenedor sale por el 8081 de AWS
+    ports:
+      - "8081:3002"
+    env_file:
+      - .env
+    environment:
+      # Sobrescribimos variables para asegurar conexión interna
+      MONGO_URI: "mongodb://admin:password@mongodb:27017"
+    depends_on:
+      - mongodb
+    networks:
+      - dexo_network
+    restart: on-failure
+
+volumes:
+  postgres_data:
+  mongo-data:
+  mongo-config:
 
 networks:
   dexo_network:
-    external: true
+    driver: bridge
+
+

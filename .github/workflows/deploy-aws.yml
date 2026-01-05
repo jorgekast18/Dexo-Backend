@@ -1,0 +1,46 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main  # Se ejecuta solo cuando haces push a la rama 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Configurar la llave SSH temporalmente
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # Agregar la IP del servidor a hosts conocidos para evitar prompt de "Are you sure?"
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      # 2. Copiar archivos al servidor (Rsync es más inteligente que SCP)
+      - name: Copy files to server
+        run: |
+          rsync -avz --exclude '.git' --exclude '.github' \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
+
+      # 3. Ejecutar Docker Compose en el servidor remoto
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ec2-user/app
+
+            # Detener contenedores viejos (opcional, pero recomendado para limpiar)
+            # sudo docker-compose down
+
+            # Construir y levantar todo en segundo plano
+            sudo docker-compose up -d --build
+
+            # Limpiar imágenes viejas para no llenar el disco (Pruning)
+            sudo docker image prune -f
+          EOF
