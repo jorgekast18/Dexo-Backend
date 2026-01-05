@@ -23,9 +23,9 @@ async function bootstrap() {
   }));
 
   const port = getPort();
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Application is running on: ${await app.getUrl()}/${globalPrefix}`
   );
 }
 

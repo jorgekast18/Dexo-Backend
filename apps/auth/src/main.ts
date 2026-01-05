@@ -19,8 +19,8 @@ async function bootstrap() {
       transform: true,
     })
   )
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
-  Logger.log(`🚀 App running on http://localhost:${port}/`, 'Bootstrap')
+  Logger.log(`🚀 App running on ${await app.getUrl()}/`, 'Bootstrap')
 }
 bootstrap();
