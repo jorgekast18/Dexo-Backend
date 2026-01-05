@@ -1,9 +1,10 @@
-name: Deploy to AWS EC2 with Docker Compose
+name: Deploy to AWS EC2
 
 on:
   push:
     branches:
-      - main  # Se ejecuta solo cuando haces push a la rama 'main'
+      - main
+      - develop
 
 jobs:
   deploy:
