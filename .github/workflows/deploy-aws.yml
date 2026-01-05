@@ -53,14 +53,25 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # 1. ACTUALIZACIÓN DE EMERGENCIA DE DOCKER
+            sudo yum update -y
+            sudo yum install -y docker
+
+            # Instalar el plugin de Docker Compose V2 oficial (arregla el error de buildx)
+            mkdir -p ~/.docker/cli-plugins/
+            curl -SL https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-$(uname -m) -o ~/.docker/cli-plugins/docker-compose
+            chmod +x ~/.docker/cli-plugins/docker-compose
+
+            # Reiniciar servicio
+            sudo service docker start
+
+            # --- DESPLIEGUE ---
             cd /home/ec2-user/app
 
-            # Detenemos contenedores anteriores
-            docker-compose down
+            # Usamos el comando nuevo 'docker compose' (sin guion) que usa el plugin V2
+            sudo ~/.docker/cli-plugins/docker-compose down
+            sudo ~/.docker/cli-plugins/docker-compose up -d --build --remove-orphans
 
-            # Reconstruimos las imágenes (ahora será rapidísimo porque ya está compilado)
-            docker-compose up -d --build --remove-orphans
-
-            # Limpieza
-            docker image prune -f
+            sudo docker image prune -f
           EOF
+
