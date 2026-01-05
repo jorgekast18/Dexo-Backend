@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       # 2. EJECUTAR EL BUILD DE NX (Aquí ocurre la magia)
       # Esto crea la carpeta 'dist/' con tus microservicios compilados
