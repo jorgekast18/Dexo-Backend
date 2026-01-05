@@ -1,4 +1,4 @@
-name: Deploy to AWS EC2 with Docker Compose
+name: Deploy to AWS EC2
 
 on:
   push:
@@ -37,11 +37,11 @@ jobs:
             cd /home/ec2-user/app
 
             # Detener contenedores viejos (opcional, pero recomendado para limpiar)
-            # sudo docker-compose down
+            docker-compose down
 
             # Construir y levantar todo en segundo plano
-            sudo docker-compose up -d --build
+            docker-compose up -d --build
 
             # Limpiar imágenes viejas para no llenar el disco (Pruning)
-            sudo docker image prune -f
+            docker image prune -f
           EOF
