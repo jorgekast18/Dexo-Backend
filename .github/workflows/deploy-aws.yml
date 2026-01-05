@@ -1,47 +1,66 @@
-name: Deploy to AWS EC2
+name: Deploy Nx App to EC2
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [ "main", "develop" ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 1. Configurar la llave SSH temporalmente
+      # 1. Instalar Node y dependencias
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 2. EJECUTAR EL BUILD DE NX (Aquí ocurre la magia)
+      # Esto crea la carpeta 'dist/' con tus microservicios compilados
+      - name: Build Microservices with Nx
+        run: npx nx run-many --target=build --all --parallel
+
+      # 3. Configurar SSH
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # Agregar la IP del servidor a hosts conocidos para evitar prompt de "Are you sure?"
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      # 2. Copiar archivos al servidor (Rsync es más inteligente que SCP)
+      # 4. Copiar archivos al servidor
+      # IMPORTANTE: Ahora incluimos la carpeta 'dist/' que acabamos de crear
       - name: Copy files to server
         run: |
-          rsync -avz --exclude '.git' --exclude '.github' \
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.github' \
             -e "ssh -i ~/.ssh/id_rsa" \
-            ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
+            ./dist ./package.json ./package-lock.json ./docker-compose.yml ./apps \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
 
-      # 3. Ejecutar Docker Compose en el servidor remoto
+      # 5. Desplegar en el servidor
       - name: Deploy with Docker Compose
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ec2-user/app
 
-            # Detener contenedores viejos (opcional, pero recomendado para limpiar)
+            # Detenemos contenedores anteriores
             docker-compose down
 
-            # Construir y levantar todo en segundo plano
-            docker-compose up -d --build
+            # Reconstruimos las imágenes (ahora será rapidísimo porque ya está compilado)
+            docker-compose up -d --build --remove-orphans
 
-            # Limpiar imágenes viejas para no llenar el disco (Pruning)
+            # Limpieza
             docker image prune -f
           EOF
