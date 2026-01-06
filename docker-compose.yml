@@ -1,17 +1,15 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:16
     container_name: dexo_postgres
     restart: always
-    env_file:
-      - .env
-    ports:
-      - "5432:5432"
-
+    env_file: .env
+    ports: ["5432:5432"]
     networks:
       - dexo_network
     healthcheck:
-      # CORREGIDO: Usamos el usuario 'postgres' que sí existe
       test: ["CMD-SHELL", "pg_isready -U postgres -d dexo_db"]
       interval: 10s
       timeout: 5s
@@ -21,15 +19,12 @@ services:
     image: mongo:8.0
     container_name: dexo-mongodb
     restart: always
-    env_file:
-      - .env
+    env_file: .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: logging
-    ports:
-      - "27017:27017"
-
+    ports: ["27017:27017"]
     networks:
       - dexo_network
 
@@ -38,21 +33,17 @@ services:
     build:
       context: .
       dockerfile: apps/auth/Dockerfile
-    ports:
-      - "8080:${AUTH_PORT}"
+    ports: ["8080:${AUTH_PORT}"]
     env_file:
       - .env
       - apps/auth/.env
     environment:
       MONGO_URI: ${MONGO_URI}
       POSTGRES_HOST: postgres
-      # Aseguramos que la app también use el usuario correcto
       POSTGRES_USER: postgres
     depends_on:
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_started
+      postgres: { condition: service_healthy }
+      mongodb: { condition: service_started }
     networks:
       - dexo_network
     restart: always
@@ -62,8 +53,7 @@ services:
     build:
       context: .
       dockerfile: apps/transactions/Dockerfile
-    ports:
-      - "8081:${TRANSACTION_PORT}"
+    ports: ["8081:${TRANSACTION_PORT}"]
     env_file:
       - .env
       - apps/transactions/.env
@@ -72,8 +62,7 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
     depends_on:
-      mongodb:
-        condition: service_started
+      mongodb: { condition: service_started }
     networks:
       - dexo_network
     restart: always
