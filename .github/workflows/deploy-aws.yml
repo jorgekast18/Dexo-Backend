@@ -1,0 +1,95 @@
+name: Deploy Nx App to EC2
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1. Instalar Node y dependencias
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      # 2. EJECUTAR EL BUILD DE NX (Aquí ocurre la magia)
+      # Esto crea la carpeta 'dist/' con tus microservicios compilados
+      - name: Build Microservices with Nx
+        run: npx nx run-many --target=build --all --parallel
+
+      # 3. Configurar SSH
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      # 4. Copiar archivos al servidor
+      # IMPORTANTE: Ahora incluimos la carpeta 'dist/' que acabamos de crear
+      - name: Copy files to server
+        run: |
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.github' \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            ./dist ./package.json ./package-lock.json ./docker-compose.yml ./apps \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
+
+      # 4.1 Crear archivos .env en el servido
+      - name: Create .env files on server
+        run: |
+            ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+              cd /home/ec2-user/app
+
+              # 1. Crear .env RAÍZ
+              echo "${{ secrets.ENV_ROOT }}" > .env
+
+              # 2. Crear .env para AUTH
+              mkdir -p apps/auth
+              echo "${{ secrets.ENV_AUTH }}" > apps/auth/.env
+
+              # 3. Crear .env para TRANSACTION
+              mkdir -p apps/transactions
+              echo "${{ secrets.ENV_TRANSACTION }}" > apps/transactions/.env
+            EOF
+
+      # 5. Desplegar en el servidor
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # 1. ACTUALIZACIÓN DE EMERGENCIA DE DOCKER
+            sudo yum update -y
+            sudo yum install -y docker
+
+            # Instalar el plugin de Docker Compose V2 oficial (arregla el error de buildx)
+            mkdir -p ~/.docker/cli-plugins/
+            curl -SL https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-$(uname -m) -o ~/.docker/cli-plugins/docker-compose
+            chmod +x ~/.docker/cli-plugins/docker-compose
+
+            # Reiniciar servicio
+            sudo service docker start
+
+            # --- DESPLIEGUE ---
+            cd /home/ec2-user/app
+
+            # Usamos el comando nuevo 'docker compose' (sin guion) que usa el plugin V2
+            sudo ~/.docker/cli-plugins/docker-compose down
+            sudo ~/.docker/cli-plugins/docker-compose up -d --build --remove-orphans
+
+            sudo docker image prune -f
+          EOF
+

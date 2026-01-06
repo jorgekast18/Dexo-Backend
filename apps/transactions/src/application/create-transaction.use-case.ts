@@ -1,4 +1,5 @@
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import * as Sentry from "@sentry/nestjs";
 import { ITransactionRepository } from '../domain/ports/transaction.repository.interface';
 import { ITransactionTypeRepository } from '../domain/ports/transaction-type.repository.interface';
 import { ICategoryRepository } from '../domain/ports/category.repository.interface';
@@ -27,6 +28,7 @@ export class CreateTransactionUseCase {
     // Validar que el tipo de transacción existe
     const transactionType = await this.transactionTypeRepository.findById(dto.transactionTypeId);
     if (!transactionType) {
+      Sentry.logger.info('Transaction type not found', { action: 'create_transaction' })
       throw new NotFoundException('Tipo de transacción no encontrado');
     }
 

@@ -68,12 +68,12 @@ docker network create dexo-network
 
 Construir las imágenes desde el código fuente
 ```bash
-docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.yml pull
 ```
 
 Levantar todo
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.yml up -d
 ```
 
 El siguiente paso es construir la imagen de la base de datos (PostgreSQL):
